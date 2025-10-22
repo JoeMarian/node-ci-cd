@@ -14,8 +14,8 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                // Added --disable-content-trust to bypass credential helper failure for public image pull
-                sh "${DOCKER_CMD} build --pull --disable-content-trust -t nodejs-api-app:latest ."
+                // Set DOCKER_BUILDKIT=0 to force the classic builder and bypass the credential helper issue.
+                sh "DOCKER_BUILDKIT=0 ${DOCKER_CMD} build -t nodejs-api-app:latest ."
                 sh 'echo "Docker image nodejs-api-app:latest built successfully"'
             }
         }
@@ -24,7 +24,6 @@ pipeline {
             steps {
                 sh "${DOCKER_CMD} stop nodejs-api-container || true"
                 sh "${DOCKER_CMD} rm nodejs-api-container || true"
-                // Run the new container: host port 8000 -> container port 3000
                 sh "${DOCKER_CMD} run -d -p 8000:3000 --name nodejs-api-container nodejs-api-app:latest"
                 sh 'echo "Application deployed and accessible on port 8000"'
             }
