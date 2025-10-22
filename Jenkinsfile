@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'YOUR_GIT_REPOSITORY_URL'
+                git branch: 'main', url: 'https://github.com/JoeMarian/node-ci-cd'
             }
         }
         
