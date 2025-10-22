@@ -1,5 +1,5 @@
 pipeline {
-    // Use 'any' as the default agent for the Jenkins node itself
+    // The entire pipeline runs on the main Jenkins agent
     agent any 
     
     stages {
@@ -10,13 +10,8 @@ pipeline {
         }
         
         stage('Build Docker Image') {
-            // **Agent is required for 'docker' steps**
-            agent {
-                // Use the image your Dockerfile is based on for a clean build environment
-                docker { image 'node:20-alpine' } 
-            }
             steps {
-                // Now you can use sh 'docker build...' directly, or stick to the DSL:
+                // Execute Docker CLI commands directly on the agent using 'sh'
                 sh 'docker build -t nodejs-api-app:latest .'
                 sh 'echo "Docker image nodejs-api-app:latest built successfully"'
             }
@@ -24,9 +19,10 @@ pipeline {
         
         stage('Deploy Container') {
             steps {
-                // Deploy requires access to the host's Docker daemon
+                // Stop and remove the old container, then run the new one
                 sh 'docker stop nodejs-api-container || true'
                 sh 'docker rm nodejs-api-container || true'
+                // Port mapping: host:container (8000:3000)
                 sh 'docker run -d -p 8000:3000 --name nodejs-api-container nodejs-api-app:latest'
                 sh 'echo "Application deployed and accessible on port 8000"'
             }
