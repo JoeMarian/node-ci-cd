@@ -1,6 +1,10 @@
 pipeline {
-    // The entire pipeline runs on the main Jenkins agent
     agent any 
+    
+    environment {
+        // Absolute path confirmed by 'which docker' command
+        DOCKER_CMD = '/usr/local/bin/docker' 
+    }
     
     stages {
         stage('Checkout') {
@@ -11,19 +15,18 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                // Execute Docker CLI commands directly on the agent using 'sh'
-                sh 'docker build -t nodejs-api-app:latest .'
+                sh "${DOCKER_CMD} build -t nodejs-api-app:latest ."
                 sh 'echo "Docker image nodejs-api-app:latest built successfully"'
             }
         }
         
         stage('Deploy Container') {
             steps {
-                // Stop and remove the old container, then run the new one
-                sh 'docker stop nodejs-api-container || true'
-                sh 'docker rm nodejs-api-container || true'
-                // Port mapping: host:container (8000:3000)
-                sh 'docker run -d -p 8000:3000 --name nodejs-api-container nodejs-api-app:latest'
+                // Stop and remove the old container (|| true prevents failure if container doesn't exist)
+                sh "${DOCKER_CMD} stop nodejs-api-container || true"
+                sh "${DOCKER_CMD} rm nodejs-api-container || true"
+                // Run the new container: host port 8000 -> container port 3000
+                sh "${DOCKER_CMD} run -d -p 8000:3000 --name nodejs-api-container nodejs-api-app:latest"
                 sh 'echo "Application deployed and accessible on port 8000"'
             }
         }
