@@ -2,7 +2,6 @@ pipeline {
     agent any 
     
     environment {
-        // Absolute path confirmed by 'which docker' command
         DOCKER_CMD = '/usr/local/bin/docker' 
     }
     
@@ -15,14 +14,14 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                sh "${DOCKER_CMD} build -t nodejs-api-app:latest ."
+                // Added --disable-content-trust to bypass credential helper failure for public image pull
+                sh "${DOCKER_CMD} build --pull --disable-content-trust -t nodejs-api-app:latest ."
                 sh 'echo "Docker image nodejs-api-app:latest built successfully"'
             }
         }
         
         stage('Deploy Container') {
             steps {
-                // Stop and remove the old container (|| true prevents failure if container doesn't exist)
                 sh "${DOCKER_CMD} stop nodejs-api-container || true"
                 sh "${DOCKER_CMD} rm nodejs-api-container || true"
                 // Run the new container: host port 8000 -> container port 3000
